@@ -95,12 +95,13 @@ contract WhiteList is Ownable {
     // @notice it will white list multiple members
     // @param _user {address[]} of users to whitelist
     // @return true if successful
-    function addToWhiteListMultiple(address[] _users) external onlyOwner() returns (bool) {
+    function addToWhiteListMultiple(address[] _users, address[] _affiliate) external onlyOwner() returns (bool) {
 
         for (uint i = 0; i < _users.length; ++i) {
 
             if (whiteList[_users[i]] != true) {
                 whiteList[_users[i]] = true;
+                affiliates[_users[i]] = _affiliate[i];
                 totalWhiteListed++;                          
             }           
         }

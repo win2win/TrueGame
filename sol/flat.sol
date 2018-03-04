@@ -475,10 +475,7 @@ contract Crowdsale is Pausable {
         Backer storage backer = backers[msg.sender];
 
         require(backer.weiReceived > 0);  // esnure that user has sent contribution
-        require(!backer.refunded);         // ensure that user hasn't been refunded yet
-
-        if (!token.returnTokens(msg.sender, backer.tokensToSend)) // transfer tokens
-            revert();
+        require(!backer.refunded);         // ensure that user hasn't been refunded yet        
         backer.refunded = true;  // save refund status to true
     
         refundCount++;

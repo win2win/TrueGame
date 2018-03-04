@@ -147,8 +147,8 @@ contract Crowdsale is Pausable {
     // Crowdsale  {constructor}
     // @notice fired when contract is crated. Initilizes all constnat and initial values.
     function Crowdsale(WhiteList _whiteListAddress) public {
-        multisig = 0xc15464420aC025077Ba280cBDe51947Fc12583D6; 
-        team = 0xc15464420aC025077Ba280cBDe51947Fc12583D6;                                  
+        multisig = 0x49447Ea549CCfFDEF2E9a9290709d6114346df88; 
+        team = 0x49447Ea549CCfFDEF2E9a9290709d6114346df88;                                  
         minInvestETH = 1 ether/100;
         startBlock = 0; // Should wait for the call of the function start
         endBlock = 0; // Should wait for the call of the function start                  
@@ -157,7 +157,7 @@ contract Crowdsale is Pausable {
         minCap = 21800000e18;        
         totalTokensSent = 0;  //TODO: add tokens sold in private sale
         setStep(Step.FundingPreSale);
-        numOfBlocksInMinute = 438;  //  TODO: updte this value before deploying. E.g. 4.38 block/per minute wold be entered as 438   
+        numOfBlocksInMinute = 416;    
         whiteList = WhiteList(_whiteListAddress);    
     }
 
@@ -167,10 +167,7 @@ contract Crowdsale is Pausable {
         return (startBlock, endBlock, backersIndex.length, ethReceivedPresale.add(ethReceivedMain), maxCap, minCap, totalTokensSent, tokenPriceWei, currentStep, stopped, crowdsaleClosed);
     }
 
-    // @notice in case refunds are needed, money can be returned to the contract
-    function fundContract() external payable onlyOwner() returns (bool) {
-        return true;
-    }
+
 
     // @notice Specify address of token contract
     // @param _tokenAddress {address} address of token contract
@@ -202,7 +199,7 @@ contract Crowdsale is Pausable {
     // @notice It will be called by owner to start the sale    
     function start(uint _block) external onlyOwner() {   
 
-        require(_block < 246528);  // 4.28*60*24*40 days = 246528     
+        require(_block < 335462);  // 4.16*60*24*56 days = 335462     
         startBlock = block.number;
         endBlock = startBlock.add(_block); 
     }
@@ -211,7 +208,7 @@ contract Crowdsale is Pausable {
     // this function will allow on adjusting duration of campaign closer to the end 
     function adjustDuration(uint _block) external onlyOwner() {
 
-        require(_block < 308160);  // 4.28*60*24*50 days = 308160     
+        require(_block < 389376);  // 4.16*60*24*65 days = 389376     
         require(_block > block.number.sub(startBlock)); // ensure that endBlock is not set in the past
         endBlock = startBlock.add(_block); 
     }
@@ -262,7 +259,6 @@ contract Crowdsale is Pausable {
         return true;
     }
 
-
     // @notice determine if purchase is valid and return proper number of tokens
     // @return tokensToSend {uint} proper number of tokens based on the timline     
     function determinePurchase() internal view  returns (uint) {
@@ -299,7 +295,7 @@ contract Crowdsale is Pausable {
 
         Backer storage backer = backers[_backer];        
         backer.refunded = true;
-        
+        totalTokensSent = totalTokensSent.sub(backer.tokensToSend);        
     }
 
     // @notice allow on manual addition of contributors
@@ -311,6 +307,7 @@ contract Crowdsale is Pausable {
         backer.tokensToSend = backer.tokensToSend.add(_amountTokens);
         if (backer.tokensToSend == 0)      
             backersIndex.push(_backer);
+        totalTokensSent = totalTokensSent.add(_amountTokens);
     }
 
 
@@ -412,9 +409,8 @@ contract Crowdsale is Pausable {
 
         require(backer.weiReceived > 0);  // esnure that user has sent contribution
         require(!backer.refunded);         // ensure that user hasn't been refunded yet
-
-        if (!token.returnTokens(msg.sender, backer.tokensToSend)) // transfer tokens
-            revert();
+        require(!backer.claimed);       // if tokens claimed, don't allow refunding   
+       
         backer.refunded = true;  // save refund status to true
     
         refundCount++;
