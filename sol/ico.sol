@@ -439,6 +439,7 @@ contract Token is ERC20, Ownable {
     function returnTokens(address _member, uint256 _value) public returns(bool);
     function unlock() public;
     function balanceOf(address _owner) public view returns(uint balance);
+    function burn( address _member, uint256 _value) public returns(bool);
 } 
 
 
